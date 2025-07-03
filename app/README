@@ -1,0 +1,14 @@
+pip install poetry
+
+poetry env use C:\Users\USERNAME\AppData\Local\Programs\Python\Python312\python.exe
+
+poetry shell
+
+poetry install
+
+$env:PYTHONPATH = (Get-Location).Path
+
+For windows
+    choco install make
+
+make fmt lint test
