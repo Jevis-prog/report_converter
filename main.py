@@ -9,7 +9,7 @@ bot = Bot(token=settings.bot_token)
 dp = Dispatcher()
 
 
-async def main():
+async def main() -> None:
     dp.include_router(router)
     await bot.delete_webhook(drop_pending_updates=True)
     await dp.start_polling(bot)

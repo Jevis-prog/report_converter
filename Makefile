@@ -23,6 +23,6 @@ fmt: ruff_format_fix ruff_sort_imports
 lint: mypy_check ruff_format_check ruff_lint_check
 
 test:
-	pytest
+	set PYTHONPATH=. && pytest tests
 
 all: fmt lint test

@@ -1,11 +1,11 @@
+import collections
 from collections import defaultdict
 
-from app.domain.value_objects.my_collection import mc
 from app.domain.entities.sell_report import SellReportOut
 
 
-def generate_report(sold_goods: list[SellReportOut]) -> list[dict]:
-    report_data = defaultdict(
+def generate_report(sold_goods: list[SellReportOut], mc: dict[str, int]) -> list[dict[str, str | float | int]]:
+    report_data: collections.defaultdict[str, dict[str, float]] = defaultdict(
         lambda: {
             "cost": 0.0,
             "partners": 0.0,

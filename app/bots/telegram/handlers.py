@@ -3,14 +3,21 @@ import time
 
 from aiogram import F, Router
 from aiogram.filters import Command
-from aiogram.types import FSInputFile, Message
+from aiogram.types import Document, FSInputFile, Message, User
 
 from app.core.converters.xlsx_to_csv import convert_xlsx_to_csv
-from app.core.exceptions import FileFormatError, FileConversionError, ReportGenerationError, FileProcessingError
+from app.core.exceptions import (
+    DeleteFileError,
+    FileConversionError,
+    FileFormatError,
+    FileProcessingError,
+    ReportGenerationError,
+)
 from app.core.services.report_generator import generate_report
 from app.core.services.report_reader import read_sell_report
 from app.core.services.report_writer import write_report_to_csv
 from app.core.services.user_services import get_welcome_text
+from app.domain.value_objects.my_collection import mc
 from logger import setup_logger
 
 router = Router()
@@ -19,21 +26,28 @@ logger = setup_logger(__name__)
 
 @router.message(Command("start"))
 async def start_handler(message: Message) -> None:
-    user_name = message.from_user.first_name
-    welcome_text = await get_welcome_text(user_name)
+    user: User | None = message.from_user
+    user_name = user.first_name if user and user.first_name else "пользователь"
+    welcome_text = get_welcome_text(user_name)
     await message.answer(welcome_text)
 
 
 @router.message(F.document)
-async def handle_file(message: Message):
+async def handle_file(message: Message) -> None:
     start_time = time.time()
-    document = message.document
+    document: Document | None = message.document
+    csv_file = None
+    report_file = None
 
-    if not document.file_name.endswith(".xlsx"):
+    if not document or not document.file_name or not document.file_name.endswith(".xlsx"):
         await message.answer("Пожалуйста, отправьте файл в формате .xlsx.")
         return
 
     file_path = f"temp_{document.file_name}"
+    if not message.bot:
+        await message.answer("Не удалось обработать файл, повторите попытку позже.")
+        return
+
     await message.bot.download(document, destination=file_path)
     logger.info(f"Получен файл: {document.file_name}")
 
@@ -46,8 +60,8 @@ async def handle_file(message: Message):
         with open(csv_file, 'rb') as f:
             file_data = f.read()
 
-        sold_goods = await read_sell_report(file_data)
-        report = generate_report(sold_goods)
+        sold_goods = read_sell_report(file_data)
+        report = generate_report(sold_goods, mc=mc)
 
         report_file = f"report_{document.file_name}.csv"
         write_report_to_csv(report, report_file)
@@ -71,13 +85,10 @@ async def handle_file(message: Message):
     except FileProcessingError as e:
         logger.error(f"Ошибка обработки файла: {e}")
         await message.answer("Произошла ошибка при обработке файла. Попробуйте позже.")
-    except Exception as e:
-        logger.error(f"Неожиданная ошибка: {e}")
-        await message.answer("Произошла непредвиденная ошибка. Попробуйте позже.")
     finally:
         for temp_file in [file_path, csv_file, report_file]:
-            if os.path.exists(temp_file):
+            if temp_file is not None and os.path.exists(temp_file):
                 try:
                     os.remove(temp_file)
-                except Exception as e:
+                except DeleteFileError as e:
                     logger.warning(f"Не удалось удалить временный файл {temp_file}: {e}")

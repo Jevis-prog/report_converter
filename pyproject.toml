@@ -72,7 +72,10 @@ ruff = "^0.12.1"
 mypy = "^1.16.1"
 pytest = "^8.4.1"
 pydantic-settings = "^2.10.1"
+pytest-asyncio = "^1.0.0"
 
+
+[tool.poetry.group.dev.dependencies]
 
 [tool.mypy]
 exclude='.venv'
@@ -116,7 +119,7 @@ ignore = [
     "UP035",
     "PLR0913", "PLW2901", "PLW0603",
     "RUF001", "RUF002", "RUF003", "RUF012", "RUF010", "RUF015", "RUF005", "RUF009",
-    "ANN101", "ANN102", "ANN401",
+    "ANN401",
     "FLY002",
 ]
 

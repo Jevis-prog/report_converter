@@ -1,9 +1,10 @@
 import csv
+from typing import Any
 
 from app.utils.parser import format_number
 
 
-def write_report_to_csv(report: list[dict], file_name: str = "unit_report.csv") -> None:
+def write_report_to_csv(report: list[dict[str, Any]], file_name: str = "unit_report.csv") -> None:
     with open(file_name, mode="w", newline='', encoding="cp1251") as file:
         writer = csv.writer(file, delimiter=';')
 

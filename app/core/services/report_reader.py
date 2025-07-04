@@ -16,7 +16,7 @@ RETURN_BONUS = 16
 RETURN_QUANTITY = 17
 
 
-async def read_sell_report(file: bytes) -> list[SellReportOut]:
+def read_sell_report(file: bytes) -> list[SellReportOut]:
     with io.BytesIO(file) as file_stream:
         file_content = file_stream.read().decode('utf-8')
 
